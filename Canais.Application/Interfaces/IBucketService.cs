@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Canais.Domain.Interfaces;
+namespace Canais.Application.Interfaces;
 
 public interface IBucketService
 {

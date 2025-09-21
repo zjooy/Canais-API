@@ -1,4 +1,4 @@
-﻿namespace Canais.Domain.Response;
+﻿namespace Canais.Application.Response;
 
 public class ResultResponse<T>
 {

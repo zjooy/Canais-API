@@ -1,4 +1,4 @@
-﻿namespace Canais.Domain.Request;
+﻿namespace Canais.Application.Models;
 
 public class FiltroReclamacoesRequest
 {

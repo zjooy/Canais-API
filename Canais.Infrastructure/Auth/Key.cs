@@ -1,0 +1,6 @@
+﻿namespace Canais.Infrastructure.Auth;
+
+public class Key
+{
+    public static string Secret = "MvWENJUOAjbNu9lDmBUwO71e9tn4XbNngN5S7zjR9n4aT9ALFt5rB51lCnFU7OlCcYxps9NnN60zlCmMC1kHHfT9iL5hTJXVGezd7K5HSiVhK9805LpN2NSGkLMV7WIDqshhww8Ro03ReTRyO2AGkpoiWV5vDRW0CCphE4og2UNAHBoQVFlrphMgZKHM8wu9aCJKUXvc5j9h5SU8jnecDsHIaaUCwWywwPidoNrzJoLeqkLCXb5VKDKUBssL2pOp";
+}

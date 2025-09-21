@@ -1,5 +1,6 @@
 ﻿using Amazon.SQS;
 using Amazon.SQS.Model;
+using Canais.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 
 namespace Canais.Application.Service;

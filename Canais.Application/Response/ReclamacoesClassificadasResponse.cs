@@ -1,6 +1,6 @@
 ﻿using Canais.Domain.Entities;
 
-namespace Canais.Domain.Response;
+namespace Canais.Application.Response;
 
 public class ReclamacoesClassificadasResponse
 {
@@ -21,8 +21,11 @@ public class ReclamacoesClassificadasResponse
             CpfReclamante = reclamacao.Cpf,
             TextoReclamacao = reclamacao.Texto,
             CanalRecebido = reclamacao.Canal,
-            ReclamacaoAtendida = reclamacao.ReclamacaoAtendida,
-            Categorias = reclamacao.Categorias,
+            ReclamacaoAtendida = reclamacao.Atendida,
+            Categorias = reclamacao.ReclamacaoCategorias?
+                             .Select(rc => rc.Categorias.Nome)
+                             .ToList()
+                     ?? new List<string>(),
             Anexos = reclamacao.Anexos,
             DataAbertura = reclamacao.DataAbertura
         };

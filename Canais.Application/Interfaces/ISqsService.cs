@@ -1,4 +1,4 @@
-﻿namespace Canais.Application.Service;
+﻿namespace Canais.Application.Interfaces;
 
 public interface ISqsService
 {

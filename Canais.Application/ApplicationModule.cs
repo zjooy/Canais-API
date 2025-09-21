@@ -1,7 +1,8 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.S3;
 using Canais.Application.Service;
-using Canais.Domain.Interfaces;
+using Canais.Domain.Contracts.Repositories;
+using Canais.Application.Interfaces;
 using Canais.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 

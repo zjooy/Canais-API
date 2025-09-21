@@ -1,8 +1,8 @@
-﻿using Azure;
+﻿using Canais.Application.Interfaces;
 using Canais.Application.Models;
-using Canais.Domain.Interfaces;
-using Canais.Domain.Request;
-using Canais.Domain.Response;
+using Canais.Application.Response;
+using Canais.Domain.Contracts.Repositories;
+using Canais.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -24,44 +24,40 @@ public class ReclamacaoService : IReclamacaoService
         _bucketService = bucketService;
     }
 
-    public async Task EnviarReclamacoesParaFilaAsync(ReclamacaoRequest reclamacao, List<IFormFile> arquivos)
+    public async Task<bool> CadastrarReclamacaoAsync(AdicionarReclamacaoRequest reclamacao, List<IFormFile> arquivos)
     {
         try
         {
-            var identificacaoReclamacao = Guid.NewGuid().ToString();
-            var Anexos = new List<string>();
+            if (reclamacao is null) return false;
 
-            if (arquivos.Count != 0)
+            var reclamacaoEntity = ConverterReclamacoes(reclamacao);
+
+            _logger.LogInformation($"Inicio do cadastro da Reclamação");
+            var reclamacaoCadastrada = await _repository.CadastrarReclamacaoAsync(reclamacaoEntity);
+
+            if (reclamacaoCadastrada != null)
             {
-                foreach (var arquivo in arquivos)
-                {
-                    var nomeArquivo = await _bucketService.SalvarArquivoAsync(arquivo, reclamacao.Nome, identificacaoReclamacao);
+                _logger.LogInformation($"Salvando anexos no bucket");
+                var anexosSalvos = await SalvarAnexosReclamacao(arquivos, reclamacaoCadastrada);
 
-                    Anexos.Add(nomeArquivo);
+                if (anexosSalvos.Count != 0)
+                {
+                    _logger.LogInformation($"Atualizando reclamação com anexos");
+                    await _repository.AtualizarAnexosAsync(reclamacaoCadastrada.Id, anexosSalvos);
                 }
+
+                _logger.LogInformation($"Enviando Reclamação {reclamacaoCadastrada.Id} para fila");
+                await EnviarReclamacaoParaFila(reclamacaoCadastrada!);
+
+                return true;
             }
 
-            var mensagem = new
-            {
-                Id = identificacaoReclamacao,
-                reclamacao.Canal,
-                reclamacao.Texto,
-                reclamacao.Nome,
-                reclamacao.Cpf,
-                Anexos,
-                reclamacao.ReclamacaoAtendida
-            };
-
-            var payload = JsonConvert.SerializeObject(mensagem);
-
-            await _sqsService.EnviarReclamacaoAsync(payload);
-
-            _logger.LogInformation($"Reclamação {identificacaoReclamacao} enviada para fila.");
+            return false;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao enviar reclamação.}");
-            throw;
+            return false;
         }
     }
 
@@ -71,7 +67,7 @@ public class ReclamacaoService : IReclamacaoService
 
         try
         {
-            var reclamacoes = await _repository.ListarReclamacoesClassificadasAsync(filtro);
+            var reclamacoes = await _repository.ListarReclamacoesClassificadasAsync();
 
             var response = reclamacoes.Select(ReclamacoesClassificadasResponse.ToResponse).ToList();
 
@@ -80,8 +76,9 @@ public class ReclamacaoService : IReclamacaoService
                 serviceResponse.Dados = response;
                 serviceResponse.Sucesso = false;
                 serviceResponse.Mensagem = "Nenhum registro foi localizado.";
-            }
 
+                return serviceResponse;
+            }
 
             serviceResponse.Dados = response;
             serviceResponse.Mensagem = "Busca realizada com sucesso.";
@@ -94,4 +91,56 @@ public class ReclamacaoService : IReclamacaoService
 
         return serviceResponse;
     }
+
+
+    private ReclamacoesEntity ConverterReclamacoes(AdicionarReclamacaoRequest request)
+    {
+        var reclamacaoEntity = new ReclamacoesEntity(
+            nome: request.Nome,
+            cpf: request.Cpf,
+            texto: request.Texto,
+            canal: request.Canal!,
+            atendida: request.ReclamacaoAtendida,
+            anexos: new List<string>(),
+            dataAbertura: DateTime.UtcNow
+        );
+
+        return reclamacaoEntity;
+    }
+
+    private async Task EnviarReclamacaoParaFila(ReclamacoesEntity reclamacao)
+    {
+        var mensagem = new
+        {
+            reclamacao.Id,
+            reclamacao.Texto
+        };
+
+        var payload = JsonConvert.SerializeObject(mensagem);
+
+        await _sqsService.EnviarReclamacaoAsync(payload);
+
+        _logger.LogInformation($"Reclamação {reclamacao.Id} enviada para fila.");
+    }
+
+    private async Task<List<string>> SalvarAnexosReclamacao(List<IFormFile> arquivos, ReclamacoesEntity reclamacaoCadastrada)
+    {
+        List<string> anexosSalvos = new();
+        if (arquivos?.Any() == true)
+        {
+            var uploadTasks = arquivos.Select(async arquivo =>
+            {
+                return await _bucketService.SalvarArquivoAsync(
+                    arquivo,
+                    reclamacaoCadastrada.Nome!,
+                    reclamacaoCadastrada.Id.ToString()
+                );
+            });
+
+            anexosSalvos = (await Task.WhenAll(uploadTasks)).ToList();
+        }
+
+        return anexosSalvos;
+    }
+
 }

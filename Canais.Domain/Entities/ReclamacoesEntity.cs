@@ -1,32 +1,53 @@
 ﻿using Amazon.DynamoDBv2.Model;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Canais.Domain.Entities
+namespace Canais.Domain.Entities;
+
+public class ReclamacoesEntity
 {
-    public class ReclamacoesEntity
+    public ReclamacoesEntity()
     {
-        public string Id { get; set; }
-        public string? Nome { get; set; }
-        public string? Cpf { get; set; }
-        public string? Texto { get; set; }
-        public string? Canal { get; set; }
-        public bool? ReclamacaoAtendida { get; set; }
-        public List<string> Anexos { get; set; }
-        public List<string> Categorias { get; set; }
-        public DateTime DataAbertura { get; set; }
-
-        public static ReclamacoesEntity FromDynamoDB(Dictionary<string, AttributeValue> model)
-        {
-            return new ReclamacoesEntity
-            {
-                Id = model["Id"].S,
-                Nome = model["Nome"].S,
-                Cpf = model["Cpf"].S,
-                Texto = model["Texto"].S,
-                ReclamacaoAtendida = model["Atendida"].BOOL,
-                Anexos = model["Documentos"].SS.ToList(),
-                Categorias = model["Categorias"].SS.ToList(),
-                DataAbertura = DateTime.Parse(model["DataAbertura"].S)
-            };
-        }
+        ReclamacaoCategorias = new List<ReclamacaoCategoriasEntity>();
+        Anexos = new List<string>();
     }
+
+    // Construtor para uso manual (não usado pelo EF)
+    public ReclamacoesEntity(string nome, string cpf, string texto, string canal, bool atendida,
+        List<string> anexos, DateTime dataAbertura)
+    {
+        Id = Guid.NewGuid();
+        Nome = nome;
+        Cpf = cpf;
+        Texto = texto;
+        Canal = canal;
+        Atendida = atendida;
+        Anexos = anexos ?? new List<string>();
+        DataAbertura = dataAbertura;
+        ReclamacaoCategorias = new List<ReclamacaoCategoriasEntity>();
+    }
+
+    [Column("id")]
+    public Guid Id { get; set; }
+
+    [Column("nome")]
+    public string? Nome { get; private set; }
+
+    [Column("cpf")]
+    public string? Cpf { get; private set; }
+
+    [Column("texto")]
+    public string? Texto { get; private set; }
+
+    [Column("canal")]
+    public string? Canal { get; private set; }
+
+    [Column("atendida")]
+    public bool? Atendida { get; private set; }
+
+    [Column("anexos")]
+    public List<string> Anexos { get; private set; }
+
+    [Column("dataabertura")]
+    public DateTime DataAbertura { get; private set; }
+    public ICollection<ReclamacaoCategoriasEntity> ReclamacaoCategorias { get; set; }
 }
