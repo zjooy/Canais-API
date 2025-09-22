@@ -19,25 +19,26 @@ public static class ApplicationModule
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
-        var config = new AmazonDynamoDBConfig
-        {
-            RegionEndpoint = Amazon.RegionEndpoint.USEast1
-        };
+        //var config = new AmazonDynamoDBConfig
+        //{
+        //    RegionEndpoint = Amazon.RegionEndpoint.USEast1
+        //};
 
         services.AddScoped<IReclamacaoService, ReclamacaoService>();
         services.AddScoped<ISqsService, SqsService>();
         services.AddScoped<IReclamacaoRepository, ReclamacaoRepository>();
         services.AddAWSService<IAmazonS3>();
         services.AddScoped<IBucketService, BucketService>();
-        services.AddScoped<IAmazonDynamoDB>(sp =>
-        {
-            var config = new AmazonDynamoDBConfig
-            {
-                RegionEndpoint = Amazon.RegionEndpoint.USEast1
-            };
+        services.AddScoped<IHistoricoClienteProvider, HistoricoClienteProviderService>();
+        //services.AddScoped<IAmazonDynamoDB>(sp =>
+        //{
+        //    var config = new AmazonDynamoDBConfig
+        //    {
+        //        RegionEndpoint = Amazon.RegionEndpoint.USEast1
+        //    };
 
-            return new AmazonDynamoDBClient(config);
-        });
+        //    return new AmazonDynamoDBClient(config);
+        //});
 
         return services;
     }

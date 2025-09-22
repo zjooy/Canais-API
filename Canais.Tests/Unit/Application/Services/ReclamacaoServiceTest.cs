@@ -15,6 +15,8 @@ public class ReclamacaoServiceTest
     private readonly Mock<ILogger<ReclamacaoService>> _mockLogger;
     private readonly Mock<IReclamacaoRepository> _mockRepo;
     private readonly Mock<IBucketService> _mockBucket;
+    private readonly Mock<IHistoricoClienteProvider> _historicoClienteProvider;
+    private readonly Mock<HttpClient> _httpClient;
 
     private readonly ReclamacaoService _service;
 
@@ -24,12 +26,15 @@ public class ReclamacaoServiceTest
         _mockLogger = new Mock<ILogger<ReclamacaoService>>();
         _mockRepo = new Mock<IReclamacaoRepository>();
         _mockBucket = new Mock<IBucketService>();
-
+        _historicoClienteProvider = new Mock<IHistoricoClienteProvider>();
+        _httpClient = new Mock<HttpClient>();
         _service = new ReclamacaoService(
             _mockSqs.Object,
             _mockLogger.Object,
             _mockRepo.Object,
-            _mockBucket.Object
+            _mockBucket.Object,
+            _historicoClienteProvider.Object,
+            new Mock<IHttpClientFactory>().Object
         );
     }
 
@@ -43,8 +48,7 @@ public class ReclamacaoServiceTest
         {
             Nome = "Joyce",
             Cpf = "12345678900",
-            Texto = "Problema com atendimento",
-            Canal = "fisico"
+            Texto = "Problema com atendimento"
         };
 
         var arquivos = new List<IFormFile>();
@@ -88,8 +92,7 @@ public class ReclamacaoServiceTest
         {
             Nome = "Joyce",
             Cpf = "12345678900",
-            Texto = "Erro simulado",
-            Canal = "fisico"
+            Texto = "Erro simulado"
         };
 
         var arquivos = new List<IFormFile>();

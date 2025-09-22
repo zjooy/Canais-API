@@ -7,4 +7,5 @@ public interface IReclamacaoRepository
     Task<IEnumerable<ReclamacoesEntity>> ListarReclamacoesClassificadasAsync();
     Task<ReclamacoesEntity> CadastrarReclamacaoAsync(ReclamacoesEntity reclamacao);
     Task AtualizarAnexosAsync(Guid id, List<string> anexos);
+    Task<ReclamacoesEntity> ObterPorIdAsync(Guid id);
 }

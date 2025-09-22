@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Canais.Domain\Canais.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Helpers\" />
+  </ItemGroup>
+
 </Project>

@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Canais.Infrastructure.Auth;
 using System.Text;
+using Serilog;
+using Serilog.Events;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +18,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<CanaisDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("CanaisConnection")));
 
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .Build();
+
 // habilita suporte para serializar List<T> como jsonb
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
 NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
 
 // Add services to the container.
@@ -74,6 +80,20 @@ builder.Services.AddAWSService<IAmazonSQS>();
 
 builder.Services.AddApplicationDependency();
 
+//builder.Services.AddHttpClient("LegadoClient", client =>
+//{
+//    client.BaseAddress = new Uri("https://214fc0a7-1b14-4986-925f-f0d3e1ae4f90.mock.pstmn.io");
+//});
+
+builder.Services.AddHttpClient("LegadoClient", (serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseAddress = configuration["HttpClients:LegadoClient:BaseAddress"];
+
+    client.BaseAddress = new Uri(baseAddress);
+});
+
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("canaisReclamacoes", builder =>
@@ -103,6 +123,22 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false
     };
 });
+
+var outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {Message}{NewLine}{Exception}";
+var logFilePath = configuration["Logging:LogFilePath"];
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console(outputTemplate: outputTemplate)
+    .WriteTo.File(
+        path: logFilePath,
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: outputTemplate
+    )
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 var app = builder.Build();
 

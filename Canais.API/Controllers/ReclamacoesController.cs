@@ -62,4 +62,71 @@ public class ReclamacoesController : ControllerBase
 
         return Ok(reclamacoes);
     }
+
+    /// <summary>
+    /// Faz o upload de reclamações fisicas.
+    /// </summary>
+    /// <param name="arquivo"></param>
+    /// <returns>Mensagem De Arquivo enviado com sucesso</returns>
+    /// <response code="200">Reclamações enviadas com sucesso.</response>
+    /// <response code="400">Não foi possível cadastrar a reclamação.</response>
+    [Authorize]
+    [HttpPost("reclamacoes-fisicas/anexo")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UploadReclamacoesFisicasAsync(IFormFile arquivo)
+    {
+        if (arquivo.ContentType != "application/pdf")
+            return BadRequest("Somente arquivos PDF são permitidos.");
+
+        var arquivoEnviado = await _reclamacaoService.UploadReclamacoesFisicasAsync(arquivo);
+
+        if (!arquivoEnviado)
+        {
+            return BadRequest("Não foi possível enviar a reclamação.");
+        }
+
+        return Ok("Reclamação fisica enviada com sucesso.");
+    }
+
+    /// <summary>
+    /// Obtém o histórico de um cliente específico.
+    /// </summary>
+    /// <param name="cpf"></param>
+    /// <returns>Histórico do cliente com o banco</returns>
+    /// <response code="200">Reclamações enviadas com sucesso.</response>
+    /// <response code="404">Não foi possível localizar histórico do cliente com o banco.</response>
+    [HttpGet("reclamacoes/{cpf}/detalhes")]
+    //[Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ObterDetalhesReclamacaoAsync(string cpf)
+    {
+        var detalhes = await _reclamacaoService.ObterHistoricoClienteAsync(cpf);
+
+        if (detalhes == null)
+            return NotFound("Nenhum histórico com o cliente encontrado.");
+
+        return Ok(detalhes);
+    }
+
+    /// <summary>
+    /// Envia a reclamação para o sistema legado.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns>Mensagem De Reclamação enviada com sucesso</returns>
+    [HttpPost("reclamacoes/{id}/enviar-legado")]
+    //[Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> EnviarParaSistemaLegadoAsync(Guid id)
+    {
+        var sucesso = await _reclamacaoService.EnviarParaSistemaLegadoAsync(id);
+
+        if (!sucesso)
+            return BadRequest("Falha ao enviar reclamação para o sistema legado.");
+
+        return Ok("Reclamação enviada com sucesso.");
+    }
+
 }
