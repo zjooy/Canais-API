@@ -29,10 +29,47 @@ Canais.Infrastructure→ Repositórios
 
 ---
 
+## 🧰 Tecnologias e Bibliotecas Utilizadas nos Lambdas
+
+### Lambda de Digitalização
+
+Responsável por extrair texto de arquivos físicos (PDF) usando Textract e enviar os dados para a fila SQS.
+
+**Bibliotecas:**
+
+- `boto3` – Cliente AWS para acesso ao S3, SQS e Textract
+- `pg8000` – Conexão direta com banco de dados PostgreSQL
+- `re` – Expressões regulares para extrair campos como nome, CPF e texto
+- `os` – Manipulação de caminhos e variáveis de ambiente
+- `json` – Manipulação de payloads e mensagens
+
+---
+
+### Lambda de Classificação
+
+Responsável por receber mensagens da fila, aplicar lógica de classificação por palavras-chave e gravar categorias no banco.
+
+**Bibliotecas:**
+
+- `boto3` – Cliente AWS para Secrets Manager
+- `pg8000` – Conexão com PostgreSQL
+- `json` – Manipulação de mensagens e dados
+- `unicodedata` – Normalização de texto (remoção de acentos)
+- `re` – Expressões regulares para limpeza e contagem de palavras
+
+---
+
+### Observações Técnicas
+
+- A fila principal possui uma **DLQ configurada** para capturar mensagens que falham após 3 tentativas.
+- O banco de dados utiliza as tabelas `tb_reclamacoes` e `tb_reclamacaocategoria` para persistência.
+- A classificação é feita com base em palavras-chave cadastradas por categoria, com normalização e contagem de ocorrências.
+
+
 ## 🔐 Autenticação
 
 A API utiliza JWT para proteger os endpoints. Para acessar rotas seguras, é necessário incluir o token no cabeçalho:
-Authorization: Bearer <seu-token>
+Bearer <seu-token>
 
 ---
 
@@ -40,6 +77,10 @@ Authorization: Bearer <seu-token>
 
 - `POST /api/reclamacoes` → Endpoint de entrada de reclamações recebidas via site
 - `GET /api/reclamacoes` → Lista reclamações classificadas com filtros
+- `POST /api/reclamacoes-fisicas/anexo` → Upload de reclamações físicas (PDF)  
+- `GET /api/reclamacoes/{cpf}/detalhes` → Histórico de reclamações por CPF  
+- `POST /api/reclamacoes/{id}/enviar-legado` → Envia reclamação para sistema legado
+
 
 ---
 
