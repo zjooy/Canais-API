@@ -4,8 +4,8 @@ namespace Canais.Domain.Contracts.Repositories;
 
 public interface IReclamacaoRepository
 {
-    Task<IEnumerable<ReclamacoesEntity>> ListarReclamacoesClassificadasAsync();
+    Task<IEnumerable<ReclamacoesEntity>> ListarReclamacoesClassificadasAsync(FiltroReclamacoesEntity request);
     Task<ReclamacoesEntity> CadastrarReclamacaoAsync(ReclamacoesEntity reclamacao);
-    Task AtualizarAnexosAsync(Guid id, List<string> anexos);
-    Task<ReclamacoesEntity> ObterPorIdAsync(Guid id);
+    Task AtualizarAnexosAsync(int id, List<string> anexos);
+    Task<ReclamacoesEntity> ObterPorIdAsync(int id);
 }

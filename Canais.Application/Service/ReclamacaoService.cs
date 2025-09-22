@@ -1,6 +1,7 @@
 ﻿using Canais.Application.Interfaces;
 using Canais.Application.Models;
 using Canais.Application.Response;
+using Canais.Application.Validatorç;
 using Canais.Domain.Contracts.Repositories;
 using Canais.Domain.Entities;
 using Microsoft.AspNetCore.Http;
@@ -33,7 +34,11 @@ public class ReclamacaoService : IReclamacaoService
     {
         try
         {
-            if (reclamacao is null) return false;
+            if (!ReclamacaoValidator.IsValid(reclamacao, out var erros))
+            {
+                _logger.LogWarning($"Reclamação inválida: {erros}");
+                return false;
+            }
 
             var reclamacaoEntity = ConverterReclamacoes(reclamacao);
 
@@ -48,10 +53,10 @@ public class ReclamacaoService : IReclamacaoService
                 if (anexosSalvos.Count != 0)
                 {
                     _logger.LogInformation($"Atualizando reclamação com anexos");
-                    await _repository.AtualizarAnexosAsync(reclamacaoCadastrada.Id, anexosSalvos);
+                    await _repository.AtualizarAnexosAsync(reclamacaoCadastrada.IdReclamacao, anexosSalvos);
                 }
 
-                _logger.LogInformation($"Enviando Reclamação {reclamacaoCadastrada.Id} para fila");
+                _logger.LogInformation($"Enviando Reclamação {reclamacaoCadastrada.IdReclamacao} para fila");
                 await EnviarReclamacaoParaFila(reclamacaoCadastrada!);
 
                 return true;
@@ -72,7 +77,9 @@ public class ReclamacaoService : IReclamacaoService
 
         try
         {
-            var reclamacoes = await _repository.ListarReclamacoesClassificadasAsync();
+            var filtroEntity = ConverterFiltroToEntity(filtro);
+
+            var reclamacoes = await _repository.ListarReclamacoesClassificadasAsync(filtroEntity);
 
             var response = reclamacoes.Select(ReclamacoesClassificadasResponse.ToResponse).ToList();
 
@@ -90,6 +97,7 @@ public class ReclamacaoService : IReclamacaoService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Erro ao enviar reclamação.}");
             serviceResponse.Mensagem = ex.Message;
             serviceResponse.Sucesso = false;
         }
@@ -103,7 +111,6 @@ public class ReclamacaoService : IReclamacaoService
         {
             if (arquivo != null)
             {
-                var nomeSemExtensao = Path.GetFileNameWithoutExtension(arquivo.FileName);
                 var caminho = $"reclamacoes-aprocesssar/{arquivo.FileName}";
                 var arquivoEnviado = await _bucketService.EnviarArquivosFisicosAsync(arquivo, caminho);
 
@@ -134,7 +141,7 @@ public class ReclamacaoService : IReclamacaoService
     }
 
 
-    public async Task<bool> EnviarParaSistemaLegadoAsync(Guid id)
+    public async Task<bool> EnviarParaSistemaLegadoAsync(int id)
     {
         try
         {
@@ -143,7 +150,7 @@ public class ReclamacaoService : IReclamacaoService
 
             var payload = new ReclamacaoLegado
             {
-                Id = reclamacao.Id,
+                Id = reclamacao.IdReclamacao,
                 Nome = reclamacao.Nome!,
                 Cpf = reclamacao.Cpf!,
                 Texto = reclamacao.Texto!,
@@ -177,7 +184,7 @@ public class ReclamacaoService : IReclamacaoService
             nome: request.Nome,
             cpf: request.Cpf,
             texto: request.Texto,
-            canal: "Fisico",
+            canal: "Site",
             atendida: false,
             anexos: new List<string>(),
             dataAbertura: DateTime.Now
@@ -190,7 +197,7 @@ public class ReclamacaoService : IReclamacaoService
     {
         var mensagem = new
         {
-            reclamacao.Id,
+            reclamacao.IdReclamacao,
             reclamacao.Texto
         };
 
@@ -198,7 +205,7 @@ public class ReclamacaoService : IReclamacaoService
 
         await _sqsService.EnviarReclamacaoAsync(payload);
 
-        _logger.LogInformation($"Reclamação {reclamacao.Id} enviada para fila.");
+        _logger.LogInformation($"Reclamação {reclamacao.IdReclamacao} enviada para fila.");
     }
 
     private async Task<List<string>> SalvarAnexosReclamacao(List<IFormFile> arquivos, ReclamacoesEntity reclamacaoCadastrada)
@@ -211,7 +218,7 @@ public class ReclamacaoService : IReclamacaoService
                 return await _bucketService.SalvarArquivoAsync(
                     arquivo,
                     reclamacaoCadastrada.Nome!,
-                    reclamacaoCadastrada.Id.ToString()
+                    reclamacaoCadastrada.IdReclamacao
                 );
             });
 
@@ -221,4 +228,21 @@ public class ReclamacaoService : IReclamacaoService
         return anexosSalvos;
     }
 
+    private FiltroReclamacoesEntity ConverterFiltroToEntity(FiltroReclamacoesRequest request)
+    {
+        var filtroEntity = new FiltroReclamacoesEntity
+        {
+            IdReclamacao = request.IdReclamacao,
+            CpfReclamante = request.CpfReclamante,
+            DataInicio = request.DataInicio,
+            DataFim = request.DataFim,
+            ReclamacaoAtendida = request.ReclamacaoAtendida,
+            Categoria = request.Categoria,
+            Canal = request.Canal,
+            Page = request.Page,
+            PageSize = request.PageSize
+        };
+
+        return filtroEntity;
+    }
 }

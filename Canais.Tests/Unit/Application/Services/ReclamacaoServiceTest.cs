@@ -55,7 +55,7 @@ public class ReclamacaoServiceTest
 
         var entidade = new ReclamacoesEntity("Joyce", "12345678900", "Problema com atendimento", "fisico", false, new List<string>(), DateTime.UtcNow)
         {
-            Id = Guid.NewGuid()
+            IdReclamacao = Guid.NewGuid()
         };
 
         _mockRepo.Setup(r => r.CadastrarReclamacaoAsync(It.IsAny<ReclamacoesEntity>()))

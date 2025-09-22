@@ -1,5 +1,4 @@
-﻿using Amazon.DynamoDBv2.Model;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Canais.Domain.Entities;
 
@@ -15,7 +14,6 @@ public class ReclamacoesEntity
     public ReclamacoesEntity(string nome, string cpf, string texto, string canal, bool atendida,
         List<string> anexos, DateTime dataAbertura)
     {
-        Id = Guid.NewGuid();
         Nome = nome;
         Cpf = cpf;
         Texto = texto;
@@ -26,8 +24,8 @@ public class ReclamacoesEntity
         ReclamacaoCategorias = new List<ReclamacaoCategoriasEntity>();
     }
 
-    [Column("id")]
-    public Guid Id { get; set; }
+    [Column("idreclamacao")]
+    public int IdReclamacao { get; set; }
 
     [Column("nome")]
     public string? Nome { get; private set; }

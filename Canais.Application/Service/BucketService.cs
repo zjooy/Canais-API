@@ -57,7 +57,7 @@ public class BucketService : IBucketService
         }
     }
 
-    public async Task<string> SalvarArquivoAsync(IFormFile arquivo, string nomeReclamante, string identificacaoReclamacao)
+    public async Task<string> SalvarArquivoAsync(IFormFile arquivo, string nomeReclamante, int identificacaoReclamacao)
     {
         var nomeArquivo = $"{identificacaoReclamacao}/{nomeReclamante} - {arquivo.FileName}";
 

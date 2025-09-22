@@ -4,6 +4,7 @@ namespace Canais.Application.Response;
 
 public class ReclamacoesClassificadasResponse
 {
+    public int IdReclamacao { get; set; }
     public string NomeReclamante { get; set; }
     public string CpfReclamante { get; set; }
     public string TextoReclamacao { get; set; }
@@ -17,6 +18,7 @@ public class ReclamacoesClassificadasResponse
     {
         return new ReclamacoesClassificadasResponse
         {
+            IdReclamacao = reclamacao.IdReclamacao,
             NomeReclamante = reclamacao.Nome,
             CpfReclamante = reclamacao.Cpf,
             TextoReclamacao = reclamacao.Texto,

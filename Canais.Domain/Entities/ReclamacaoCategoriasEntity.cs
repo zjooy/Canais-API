@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Canais.Domain.Entities
 {
     public class ReclamacaoCategoriasEntity
     {
-        [Column("reclamacaoid")]
-        public Guid ReclamacaoId { get; set; }
+        [Column("idreclamacao")]
+        public int IdReclamacao { get; set; }
 
         [Column("categoriaid")]
         public int CategoriaId { get; set; }

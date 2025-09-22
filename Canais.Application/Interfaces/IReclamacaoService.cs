@@ -11,5 +11,5 @@ public interface IReclamacaoService
     Task<ResultResponse<List<ReclamacoesClassificadasResponse>>> ObterReclamacoesClassificadasAsync(FiltroReclamacoesRequest filtro);
     Task<bool> UploadReclamacoesFisicasAsync(IFormFile arquivo);
     Task<HistoricoClienteResponse> ObterHistoricoClienteAsync(string cpf);
-    Task<bool> EnviarParaSistemaLegadoAsync(Guid id);
+    Task<bool> EnviarParaSistemaLegadoAsync(int id);
 }

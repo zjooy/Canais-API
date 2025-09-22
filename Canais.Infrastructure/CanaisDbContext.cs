@@ -16,11 +16,11 @@ public class CanaisDbContext : DbContext
         modelBuilder.Entity<ReclamacoesEntity>(entity =>
         {
             entity.ToTable("tb_reclamacoes");
-            entity.HasKey(e => e.Id);
+            entity.HasKey(e => e.IdReclamacao);
 
             entity.HasMany(r => r.ReclamacaoCategorias)
               .WithOne(rc => rc.Reclamacao)
-              .HasForeignKey(rc => rc.ReclamacaoId)
+              .HasForeignKey(rc => rc.IdReclamacao)
               .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ReclamacoesEntity>()
@@ -42,7 +42,7 @@ public class CanaisDbContext : DbContext
         modelBuilder.Entity<ReclamacaoCategoriasEntity>(entity =>
         {
             entity.ToTable("tb_reclamacaocategoria");
-            entity.HasKey(e => e.ReclamacaoId);
+            entity.HasKey(e => e.IdReclamacao);
         });
 
         base.OnModelCreating(modelBuilder);

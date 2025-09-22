@@ -34,7 +34,7 @@ public class ReclamacoesController : ControllerBase
 
         if (!reclamacaoCadastrada)
         {
-            return BadRequest("Não foi possível cadastrar a reclamação.");
+            return BadRequest("Não foi possível cadastrar a reclamação. Verifique se os dados informados estão corretos.");
         }
 
         return Ok("Reclamação cadastrada com sucesso.");
@@ -97,7 +97,7 @@ public class ReclamacoesController : ControllerBase
     /// <response code="200">Reclamações enviadas com sucesso.</response>
     /// <response code="404">Não foi possível localizar histórico do cliente com o banco.</response>
     [HttpGet("reclamacoes/{cpf}/detalhes")]
-    //[Authorize]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ObterDetalhesReclamacaoAsync(string cpf)
@@ -116,10 +116,10 @@ public class ReclamacoesController : ControllerBase
     /// <param name="id"></param>
     /// <returns>Mensagem De Reclamação enviada com sucesso</returns>
     [HttpPost("reclamacoes/{id}/enviar-legado")]
-    //[Authorize]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> EnviarParaSistemaLegadoAsync(Guid id)
+    public async Task<IActionResult> EnviarParaSistemaLegadoAsync(int id)
     {
         var sucesso = await _reclamacaoService.EnviarParaSistemaLegadoAsync(id);
 

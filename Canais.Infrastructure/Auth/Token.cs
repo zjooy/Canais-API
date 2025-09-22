@@ -15,7 +15,7 @@ public class Token
         {
             Subject = new System.Security.Claims.ClaimsIdentity(new Claim[]
             {
-                new Claim("Id", reclamacao.Id.ToString())
+                new Claim("Id", reclamacao.IdReclamacao.ToString())
             }),
             Expires = DateTime.UtcNow.AddHours(3),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
